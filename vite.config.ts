@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  base: '/myfin-app/',
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
@@ -9,12 +10,12 @@ export default defineConfig({
         name: 'misGastos',
         short_name: 'misGastos',
         description: 'Control de gastos del hogar',
-        start_url: '/',
+        start_url: '/myfin-app/',
         display: 'standalone',
         background_color: '#f2f2f7',
         theme_color: '#007aff',
         icons: [
-          { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' },
+          { src: '/myfin-app/icon.svg', sizes: 'any', type: 'image/svg+xml' },
         ],
       },
       workbox: {
