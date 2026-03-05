@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isHouseholdMember() {
+      return request.auth != null &&
+             request.auth.token.email in [
+               'macsee13@gmail.com',
+               'romi.fndz87@gmail.com'
+             ];
+    }
+
+    match /expenses/{expenseId} {
+      allow read: if isHouseholdMember();
+      allow create: if isHouseholdMember()
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount > 0
+                    && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isHouseholdMember()
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount > 0
+                    && request.resource.data.createdBy == resource.data.createdBy;
+      allow delete: if isHouseholdMember();
+    }
+
+    match /incomes/{incomeId} {
+      allow read: if isHouseholdMember();
+      allow create: if isHouseholdMember()
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount > 0
+                    && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isHouseholdMember()
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount > 0
+                    && request.resource.data.createdBy == resource.data.createdBy;
+      allow delete: if isHouseholdMember();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
