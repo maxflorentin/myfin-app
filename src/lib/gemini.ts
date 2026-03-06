@@ -1,8 +1,9 @@
+import { getAI, getGenerativeModel, GoogleAIBackend } from 'firebase/ai';
+import { app } from './firebase';
 import { CATEGORY_NAMES } from './categories';
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
-const API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const ai = getAI(app, { backend: new GoogleAIBackend() });
+const model = getGenerativeModel(ai, { model: 'gemini-2.0-flash' });
 
 interface ParsedExpense {
   amount: number;
@@ -115,8 +116,6 @@ function validateParsed(data: ParsedExpense): ParsedExpense | null {
 }
 
 export async function parseExpenseInput(input: string): Promise<ParsedExpense | null> {
-  if (!API_KEY) return localParse(input);
-
   try {
     const prompt = `Sos un parser de gastos argentinos. Dada la entrada del usuario, extraé el monto en pesos argentinos y la categoría.
 Categorías válidas: ${CATEGORY_NAMES.join(', ')}.
@@ -124,19 +123,12 @@ Respondé SOLO con JSON: {"amount": number, "category": "string", "description":
 Si dice "k" después de un número, multiplicá por 1000 (ej: "10k" = 10000).
 Entrada: "${input}"`;
 
-    const res = await fetch(`${API_URL}?key=${API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 200 },
-      }),
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.1, maxOutputTokens: 200 },
     });
 
-    if (!res.ok) throw new Error(`Gemini ${res.status}`);
-
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const text = result.response.text();
     const jsonMatch = text.match(/\{[\s\S]*?\}/);
     if (!jsonMatch) throw new Error('No JSON in response');
 
@@ -153,8 +145,6 @@ export async function getFinancialTip(
   totalExpenses: number,
   totalIncome: number,
 ): Promise<string> {
-  if (!API_KEY) return '';
-
   try {
     const balance = totalIncome - totalExpenses;
     const prompt = `Sos un asesor financiero personal argentino. Basado en los gastos del mes, da UN consejo breve y práctico (máximo 2 oraciones).
@@ -171,19 +161,12 @@ ${tagBreakdown}
 
 Respondé solo con el consejo, sin formato markdown ni bullets.`;
 
-    const res = await fetch(`${API_URL}?key=${API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 300 },
-      }),
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 300 },
     });
 
-    if (!res.ok) return '';
-
-    const data = await res.json();
-    return (data.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+    return result.response.text().trim();
   } catch {
     return '';
   }
