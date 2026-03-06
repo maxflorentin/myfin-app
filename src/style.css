@@ -29,6 +29,12 @@ body {
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   min-height: 100dvh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+#app {
+  width: 100%;
 }
 
 /* === Layout === */
@@ -591,16 +597,74 @@ select.input {
 
 /* === Responsive === */
 @media (max-width: 720px) {
+  .app-header {
+    padding: 14px 16px;
+  }
+
+  .tab-nav {
+    gap: 4px;
+    padding: 8px 12px;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .content {
+    padding: 12px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
   .stat-grid {
-    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px 8px;
   }
 
   .stat-value {
     font-size: 16px;
   }
 
-  .content {
+  .item-card {
     padding: 12px;
+  }
+
+  .item-emoji {
+    font-size: 20px;
+  }
+
+  .item-title {
+    font-size: 14px;
+  }
+
+  .item-amount {
+    font-size: 14px;
+  }
+
+  .month-nav {
+    padding: 0 4px;
+  }
+
+  .month-label {
+    font-size: 15px;
+  }
+
+  .smart-input-row .input {
+    font-size: 14px;
+  }
+
+  .filter-row .input {
+    font-size: 14px;
+  }
+
+  .modal {
+    padding: 20px 16px;
+    margin: 0 8px;
   }
 }
