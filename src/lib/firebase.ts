@@ -2,14 +2,13 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { initializeFirestore, persistentLocalCache } from 'firebase/firestore';
 
-// Firebase config is public by design — security rules protect data
 const firebaseConfig = {
-  apiKey: 'AIzaSyAz80Cfgpniicf95p7BA-390pI1vXAUYOQ',
-  authDomain: 'misgastos-rm.firebaseapp.com',
-  projectId: 'misgastos-rm',
-  storageBucket: 'misgastos-rm.firebasestorage.app',
-  messagingSenderId: '349858888683',
-  appId: '1:349858888683:web:7274fcffe12153243a37ae',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
