@@ -1,4 +1,4 @@
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
 import { CATEGORY_NAMES, CATEGORIES } from '../lib/categories';
 import { toInputDate } from '../lib/format';
@@ -64,7 +64,18 @@ export function renderExpenseForm(container: HTMLElement) {
     smartBtn.textContent = '...';
     smartHint.textContent = 'Procesando...';
 
-    const parsed = await parseExpenseInput(text);
+    let recent: Array<{ description: string; category: string }> = [];
+    try {
+      const snap = await getDocs(
+        query(collection(db, 'expenses'), orderBy('createdAt', 'desc'), limit(20)),
+      );
+      recent = snap.docs.map((d) => ({
+        description: d.data().description || '',
+        category: d.data().category || '',
+      }));
+    } catch { /* ignore */ }
+
+    const parsed = await parseExpenseInput(text, recent);
 
     if (parsed) {
       (document.getElementById('amount') as HTMLInputElement).value = String(parsed.amount);

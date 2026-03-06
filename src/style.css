@@ -393,13 +393,15 @@ select.input {
 
 /* === Tip Card === */
 .tip-card {
-  border-left: 4px solid var(--color-primary);
+  background: #fdf6e3;
+  border-left: 4px solid #e6c547;
+  box-shadow: none;
 }
 
 .tip-label {
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-primary);
+  color: #a68307;
   margin-bottom: 8px;
 }
 

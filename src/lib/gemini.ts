@@ -3,7 +3,7 @@ import { app } from './firebase';
 import { CATEGORY_NAMES } from './categories';
 
 const ai = getAI(app, { backend: new GoogleAIBackend() });
-const model = getGenerativeModel(ai, { model: 'gemini-2.0-flash' });
+const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
 
 interface ParsedExpense {
   amount: number;
@@ -115,10 +115,25 @@ function validateParsed(data: ParsedExpense): ParsedExpense | null {
   return data;
 }
 
-export async function parseExpenseInput(input: string): Promise<ParsedExpense | null> {
+export async function parseExpenseInput(
+  input: string,
+  recentExpenses: Array<{ description: string; category: string }> = [],
+): Promise<ParsedExpense | null> {
   try {
+    const historyLines = recentExpenses.length
+      ? recentExpenses
+          .slice(0, 20)
+          .map((e) => `"${e.description}" → ${e.category}`)
+          .join('\n')
+      : '';
+
+    const historyBlock = historyLines
+      ? `\nHistorial reciente del usuario (usalo para aprender sus preferencias):\n${historyLines}\n`
+      : '';
+
     const prompt = `Sos un parser de gastos argentinos. Dada la entrada del usuario, extraé el monto en pesos argentinos y la categoría.
 Categorías válidas: ${CATEGORY_NAMES.join(', ')}.
+${historyBlock}
 Respondé SOLO con JSON: {"amount": number, "category": "string", "description": "string"}
 Si dice "k" después de un número, multiplicá por 1000 (ej: "10k" = 10000).
 Entrada: "${input}"`;
@@ -147,23 +162,17 @@ export async function getFinancialTip(
 ): Promise<string> {
   try {
     const balance = totalIncome - totalExpenses;
-    const prompt = `Sos un asesor financiero personal argentino. Basado en los gastos del mes, da UN consejo breve y práctico (máximo 2 oraciones).
+    const prompt = `Sos un asesor financiero personal argentino. Da UN consejo breve y práctico en máximo 3 oraciones cortas. No uses la palabra "urgente". No repitas los datos, solo da el consejo.
 
-Gastos totales: $${totalExpenses.toLocaleString('es-AR')}
-Ingresos totales: $${totalIncome.toLocaleString('es-AR')}
-Balance: $${balance.toLocaleString('es-AR')}
-
-Desglose por categoría:
-${categoryBreakdown}
-
-Desglose por tipo de gasto:
-${tagBreakdown}
+Gastos: $${totalExpenses.toLocaleString('es-AR')} | Ingresos: $${totalIncome.toLocaleString('es-AR')} | Balance: $${balance.toLocaleString('es-AR')}
+Categorías: ${categoryBreakdown}
+Tags: ${tagBreakdown}
 
 Respondé solo con el consejo, sin formato markdown ni bullets.`;
 
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 300 },
+      generationConfig: { temperature: 0.7, maxOutputTokens: 500 },
     });
 
     return result.response.text().trim();
